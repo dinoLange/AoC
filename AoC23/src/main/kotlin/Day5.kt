@@ -16,7 +16,7 @@ fun findPath(number: Long, currentCategory: Category, mapMap: Map<Category, Sour
     if (currentCategory == Category.LOCATION) {
         return number
     }
-    val map = mapMap[currentCategory]?: return -1 //should not appear with proper input
+    val map = mapMap[currentCategory] ?: return -1 //should not appear with proper input
     val nextCategory = map.destinationCategory
     val nextNumber = getCorrespondingNumber(number, map.ranges)
     return findPath(nextNumber, nextCategory, mapMap)
@@ -50,11 +50,9 @@ fun parseCategoryMaps(input: List<String>): MutableList<Pair<Category, SourceToD
             ranges.clear()
         }
     }
-
-
     return maps
-
 }
+
 
 
 fun getCorrespondingNumber(number: Long, ranges: List<Range>): Long {

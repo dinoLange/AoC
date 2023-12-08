@@ -6,9 +6,15 @@ import java.io.File
 class Day5KtTest {
 
     @Test
-    fun calculateDay5a() {
+    fun calculateDay5aTest() {
         val input = File("inputs/day5.txt").readLines();
         assertEquals(227653707, calculateDay5a(input))
+    }
+
+    @Test
+    fun calculateDay5bTest() {
+        val input = File("inputs/day5.txt").readLines()
+        assertEquals(78775051, calculateDay5b(input))
     }
 
     @Test
