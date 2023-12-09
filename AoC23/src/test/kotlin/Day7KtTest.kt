@@ -11,4 +11,10 @@ class Day7KtTest {
         assertEquals(250474325, calculateDay7a(input))
     }
 
+    @Test
+    fun calculateDay7b() {
+        val input = File("inputs/day7.txt").readLines()
+        assertEquals(248909434, calculateDay7b(input))
+    }
+
 }

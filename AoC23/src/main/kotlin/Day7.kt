@@ -11,6 +11,7 @@ fun calculateDay7a(input: List<String>): Int {
     return sum
 }
 
+
 fun figureOutHandType(camelHand: CamelHand): HandType {
     val countMap: Map<CamelCard, Int> =
         camelHand.hand.toSet().associateWith { camelHand.hand.count { that -> it == that } }
@@ -36,7 +37,7 @@ fun isTwoPair(countMap: Map<CamelCard, Int>): Boolean {
 }
 
 
-fun sortHandsByStrength(hands: List<CamelHand>): List<CamelHand> {
+private fun sortHandsByStrength(hands: List<CamelHand>): List<CamelHand> {
     return hands.sortedWith { a, b ->
         when {
             isHandBetter(a, b) -> 1
@@ -45,7 +46,7 @@ fun sortHandsByStrength(hands: List<CamelHand>): List<CamelHand> {
     }
 }
 
-fun isHandBetter(handA: CamelHand, handB: CamelHand): Boolean {
+private fun isHandBetter(handA: CamelHand, handB: CamelHand): Boolean {
     if (handA.type == handB.type) {
         for (index in handA.hand.indices) {
             val cardA = handA.hand[index]
@@ -89,18 +90,18 @@ enum class HandType {
     HIGH_CARD
 }
 
-enum class CamelCard(val symbol: Char) {
-    ACE('A'),
-    KING('K'),
-    QUEEN('Q'),
-    JACK('J'),
-    TEN('T'),
-    NINE('9'),
-    EIGHT('8'),
-    SEVEN('7'),
-    SIX('6'),
-    FIVE('5'),
-    FOUR('4'),
-    THREE('3'),
-    TWO('2')
+enum class CamelCard(val symbol: Char, val bOrder: Int) {
+    ACE('A', 0),
+    KING('K', 1),
+    QUEEN('Q', 2),
+    JACK('J', 12),
+    TEN('T', 3),
+    NINE('9', 4),
+    EIGHT('8', 5),
+    SEVEN('7', 6),
+    SIX('6', 7),
+    FIVE('5', 8),
+    FOUR('4', 9),
+    THREE('3', 10),
+    TWO('2',11)
 }
