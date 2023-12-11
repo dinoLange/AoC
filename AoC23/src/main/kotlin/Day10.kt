@@ -1,6 +1,3 @@
-import javax.sound.sampled.LineEvent
-import kotlin.math.floor
-
 fun calculateDay10a(input: List<String>): Int {
     val pipeMatrix: Array<Array<Coordinate>> = Array(input.size) { Array(input[0].length) { Coordinate() } }
     val start = Coordinate(0, 0, PipeType.START)
@@ -14,63 +11,95 @@ fun calculateDay10a(input: List<String>): Int {
             }
         }
     }
-    findLoop(start, Coordinate(0, 0, PipeType.NONE), pipeMatrix)
-    return globalCounter / 2 //floored
+    return findLoop(start, pipeMatrix)
 }
 
-var globalCounter = 0
 
-fun findLoop(start: Coordinate, last: Coordinate, pipeMatrix: Array<Array<Coordinate>>) {
-    println(start.type)
-    globalCounter++
-    val validPipeNeighbors: List<Coordinate> = findValidPipeNeighbors(start, last, pipeMatrix)
+fun findLoop(start: Coordinate, pipeMatrix: Array<Array<Coordinate>>): Int {
+    val validPipeNeighbors: List<Direction> = findStartPipes(start, pipeMatrix)
     if (validPipeNeighbors.size != 2) {
         throw IllegalArgumentException()
     }
-    if (last.type != PipeType.NONE && start.type == PipeType.START) {
-        return
+    var path = mutableListOf<Coordinate>()
+    var direction = validPipeNeighbors[0]
+    var current = start
+    var count = 0
+    while (current.type != PipeType.START || count == 0) {
+        val next = goToNextPipe(direction, current, pipeMatrix)
+        path.add(next)
+        current = next
+        direction = getNextDirection(next, direction)
+        count++
     }
-    if (validPipeNeighbors[0].x == last.x && validPipeNeighbors[0].y == last.y) {
-        findLoop(validPipeNeighbors[1], start, pipeMatrix)
-    } else {
-        findLoop(validPipeNeighbors[0], start, pipeMatrix)
+    return count / 2
+}
+
+
+fun getNextDirection(next: Coordinate, fromDirection: Direction): Direction {
+    val opposite = getOppositeDirection(fromDirection)
+    return if (next.type.directions.first == opposite)
+        next.type.directions.second
+    else
+        next.type.directions.first
+
+}
+
+fun getOppositeDirection(direction: Direction): Direction {
+    return when (direction) {
+        Direction.TOP -> Direction.BOTTOM
+        Direction.BOTTOM -> Direction.TOP
+        Direction.LEFT -> Direction.RIGHT
+        Direction.RIGHT -> Direction.LEFT
+        else -> Direction.NONE
     }
 }
 
-fun findValidPipeNeighbors(
-    start: Coordinate,
-    last: Coordinate,
-    pipeMatrix: Array<Array<Coordinate>>
-): List<Coordinate> {
+fun goToNextPipe(direction: Direction, current: Coordinate, pipeMatrix: Array<Array<Coordinate>>): Coordinate {
+    if (direction == Direction.TOP) {
+        return pipeMatrix[current.x][current.y - 1]
+    }
+    if (direction == Direction.RIGHT) {
+        return pipeMatrix[current.x + 1][current.y]
+    }
+    if (direction == Direction.BOTTOM) {
+        return pipeMatrix[current.x][current.y + 1]
+    }
+    if (direction == Direction.LEFT) {
+        return pipeMatrix[current.x - 1][current.y]
+    }
+    throw IllegalArgumentException("Input not valid")
 
-    //QUATSCH:
-    val pipeNeighbors = mutableListOf<Coordinate>()
+}
+
+fun findStartPipes(start: Coordinate, pipeMatrix: Array<Array<Coordinate>>): List<Direction> {
+    val pipeNeighbors = mutableListOf<Direction>()
     if (start.x < pipeMatrix.size - 1) {
         val rightNeighbor = pipeMatrix[start.x + 1][start.y]
-        if (rightNeighbor.type.directions.contains(Direction.LEFT)) {
-            pipeNeighbors.add(rightNeighbor)
+        if (rightNeighbor.type.directions.toList().contains(Direction.LEFT)) {
+            pipeNeighbors.add(Direction.RIGHT)
         }
     }
     if (start.y < pipeMatrix.size - 1) {
         val bottomNeighbor = pipeMatrix[start.x][start.y + 1]
-        if (bottomNeighbor.type.directions.contains(Direction.TOP)) {
-            pipeNeighbors.add(bottomNeighbor)
+        if (bottomNeighbor.type.directions.toList().contains(Direction.TOP)) {
+            pipeNeighbors.add(Direction.BOTTOM)
         }
     }
     if (start.x > 0) {
         val leftNeighbor = pipeMatrix[start.x - 1][start.y]
-        if (leftNeighbor.type.directions.contains(Direction.RIGHT)) {
-            pipeNeighbors.add(leftNeighbor)
+        if (leftNeighbor.type.directions.toList().contains(Direction.RIGHT)) {
+            pipeNeighbors.add(Direction.LEFT)
         }
     }
     if (start.y > 0) {
         val topNeighbor = pipeMatrix[start.x][start.y - 1]
-        if (topNeighbor.type.directions.contains(Direction.BOTTOM)) {
-            pipeNeighbors.add(topNeighbor)
+        if (topNeighbor.type.directions.toList().contains(Direction.BOTTOM)) {
+            pipeNeighbors.add(Direction.TOP)
         }
     }
     return pipeNeighbors
 }
+
 
 data class Coordinate(
     var x: Int = 0,
@@ -78,19 +107,19 @@ data class Coordinate(
     var type: PipeType = PipeType.GROUND,
 )
 
-enum class PipeType(val directions: List<Direction>) {
-    VERTICAL(listOf(Direction.TOP, Direction.BOTTOM)),
-    HORIZONTAL(listOf(Direction.LEFT, Direction.RIGHT)),
-    NORTH_EAST(listOf(Direction.TOP, Direction.RIGHT)),
-    NORTH_WEST(listOf(Direction.TOP, Direction.LEFT)),
-    SOUTH_WEST(listOf(Direction.BOTTOM, Direction.LEFT)),
-    SOUTH_EAST(listOf(Direction.BOTTOM, Direction.RIGHT)),
-    GROUND(listOf(Direction.NONE, Direction.NONE)),
-    NONE(listOf(Direction.NONE, Direction.NONE)),
-    START(listOf(Direction.LEFT, Direction.RIGHT, Direction.TOP, Direction.BOTTOM));
+enum class PipeType(val directions: Pair<Direction, Direction>, val char: Char) {
+    VERTICAL(Direction.TOP to Direction.BOTTOM, '|'),
+    HORIZONTAL(Direction.LEFT to Direction.RIGHT, '-'),
+    NORTH_EAST(Direction.TOP to Direction.RIGHT, 'L'),
+    NORTH_WEST(Direction.TOP to Direction.LEFT, 'J'),
+    SOUTH_WEST(Direction.BOTTOM to Direction.LEFT, '7'),
+    SOUTH_EAST(Direction.BOTTOM to Direction.RIGHT, 'F'),
+    GROUND(Direction.NONE to Direction.NONE, '.'),
+    NONE(Direction.NONE to Direction.NONE, '.'),
+    START(Direction.NONE to Direction.NONE, 'S');
 }
 
-enum class Direction {
+enum class Direction() {
     LEFT, RIGHT, TOP, BOTTOM, NONE
 }
 
